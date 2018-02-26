@@ -1,0 +1,273 @@
+\documentclass[11pt]{ctexart}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{palatino}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\author{Song Qige 2017E8018661044}
+\title{091M4041H - Assignment 2 \\Algorithm Design and Analysis }
+
+\begin{document}
+  \maketitle
+   \section{decode(4)}
+     \subsection{optimal substructure and DP equation}%第四题
+      $$ OPT[i]=\left\{
+         \begin{array}{rcl}
+         OPT[i-1]       &      &  msg[i] \ can't \ decode \ with \ msg[i-1]\\ \\
+         OPT[i - 2] + OPT[i - 1]       &      & msg[i] \ can \ decode \ with \ msg[i-1]
+         \end{array} \right. $$
+         OPT[i] means the number of ways to decode from msg[1] to msg[i]\\
+         $0 \ < \ i \ < the\ length\ of\ the\ message$ .
+     \subsection{algorithm describe and pseudo-code}
+         \ when we decide how many ways to decode 1 to i,there is two possible situations.Fisrt is msg[i] can only decode by itself,then the ways to decode 1 to i equal to the way to decode 1 to i-1.The other situation is msg[i] can decode with msg[i-1],which means the combination of msg[i-1] and msg[i] is in the range of 1 to 26,then the ways to decode 1 to i is equal to the way to decode 1 to i-1 plus the way to decode 1 to i-2.
+         \\
+         \begin{algorithm}
+         \begin{algorithmic}[1] %每行显示行号
+         \Function {WaysToDecode}{$msg[],len$}
+                \State $OPT[1] = 1$
+                \If {$msg[2] \ can't \ decode \ with \ msg[1]$}
+                    \State $OPT[2] = 1$
+                \Else
+                   \State $OPT[2] = 2$
+                \EndIf
+
+                \For{$i = 3 \to len$}
+                   \If {$msg[i] \ can't \ decode \ with \ msg[i - 1]$}
+                   \State $OPT[i] = OPT[i - 1]$
+                \Else
+                  \ $OPT[i] = OPT[i - 1] + OPT[i - 2]$
+                \EndIf
+                \EndFor
+             \State \Return{$OPT[len]$}
+         \EndFunction
+         \end{algorithmic}
+         \end{algorithm}
+
+       \subsection{Prove the correctness}
+         \ Suppose the ways to decode msg from 1 to i is OPT[i],it's  obvious that OPT[1] = 1,when calculating OPT[2],we have to transform msg[1] connect with msg[2] to a number,if it's in the range of 1 to 26,OPT[2] = 2 because we can decode msg from 1 to 2 by separately decode msg[1] and msg[2] or decode by the number msg[1] connect with msg[2].When i is bigger than 3,we calculate OPT[i] by the value of OPT[1] to OPT[i-1],if the msg[i] can't decode with msg[i-1],the ways to decode the string won't increase so OPT[i] = OPT[i-1],but if msg[i] can decode with msg[i-1],the result should plus OPT[i-2] to contain the situation which treats msg[i] and msg[i-1] as a whole to decode.
+       \subsection{time complexity}
+         \ $T(n) = T(n - 1) + c = O(n)$
+
+       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+       \section{Largest Divisible Subset(1)}%第一题
+        \subsection{optimal substructure and DP equation}
+         $$ OPT[i]= max\left\{
+         \begin{array}{rcl}
+         OPT[i]       &      & \\ \\
+         OPT[j] + 1       &      & 0 \ < \ j \ < \ i \ < \ len
+         \end{array} \right. $$
+
+       \subsection{Algorithm Description and pseudo-code}
+       \ To reduce the number of subproblems,we can sort the elements in the set by descending order.Suppose OPT[i] means the number of the elements of largest divisible subset from 0 to i,when calculating OPT[i],we have to check ever j smaller than i, if nums[j]\%nums[i]=0,all elements that can divisible nums[j] surely can also divisible nums[i] and the i$^{th}$ element can join into the subset ending by j$^{th}$ element.And if OPT[j]+1 is larger than OPT[i],we should instead OPT[i] by OPT[j]+1.Then we get the optimal structure:\\ $OPT[i] = max \{ OPT[i],OPT[j]+1 \}$.
+       \\
+       To get the elements of the largest divisible subset,we need an array to store the index of the elements in  largest divisible subset for backtracking after this process.
+         \begin{algorithm}
+         \begin{algorithmic}[1] %每行显示行号
+         \Function {LargeDivisibleSubset}{$nums[],len$}
+                \State state = 0
+                \State $sort(nums)$
+                 \For{$i = 0 \to len$}
+                     \State $part[i] = i$
+                 \EndFor
+                \For{$i = 0 \to len$}
+                   \For{$j = 0 \to i$}
+           \algstore{bkbreak}
+           \end{algorithmic}
+           \end{algorithm}
+
+           \begin{algorithm}[h]
+           \begin{algorithmic}[1]
+           \algrestore{bkbreak}
+                     \If {$nums[j] \% nums[i] == 0$}
+                         \State $OPT[i] = max \{ OPT[i],OPT[j]+1 \}$
+                         \State state = 1
+                     \EndIf
+                     \If {$state == 1$}
+                         \State $part[i] = j$
+                     \EndIf
+                    \EndFor
+                \EndFor
+
+               \State $k = 0$
+               \For{$i = 0 \to len$}
+                     \If {$part[i] != i$}
+                         \State $res[k++] = nums[part[i]]$
+                     \EndIf
+                    \EndFor
+                \State \Return{$res$}
+         \EndFunction
+         \end{algorithmic}
+         \end{algorithm}
+
+       \subsection{Prove the correctness}
+       \ After sorting the set by descending order,we can solve this problem by considering the i$^{th}$ element.For each j in range of 0 to i-1,when we find a j$^{th}$ element can divisible the i$^{th}$ element,the i$^{th}$ element should join into the subset ending by j$^{th}$ element,and OPT[i] should be replaced by the length of this subset (OPT[j]) plus 1 if it's smaller than it,since the i$^{th}$ element has joined in this subset.
+       \subsection{time complexity}
+         \ Since we sort the set before starting dp process,the number of subproblems reduce to $n^2$ so $T(n) = O(n^2)$ \\
+
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+             \section{Money robbing(2)}%第二题
+        \subsection{2-1 optimal substructure and DP equation}
+         $$ OPT[i]= max\left\{
+         \begin{array}{rcl}
+         OPT[i - 1]       &      & \\ \\
+         OPT[i - 2] + Money[i]       &      &
+         \end{array} \right. $$
+         OPT[i] means the maximum amount of money we can rob after meeting the i$^{th}$ house.Money[i] means the amount of money i$^{th}$ house stashed.\\
+         $0 \ < \ i \ < the\ total\ number\ of\ houses\ along\ the\ street$.
+       \subsection{2-1 Algorithm Description and pseudo-code}
+         \ When solving the problem of robbing along a street,we should decide whether the i$^{th}$ house should be robbed.There are two situations,the first one is robbing the i$^{th}$ house simultaneously.To avoid alerting the police,we can't rob the i-1$^{th}$ house,and the money we get should plus Money[i].The other one is not robbing the i$^{th}$ house.Then the money we get at i$^{th}$ house won't increase.
+         We can get the optimal structure:$OPT[i] = max \{ OPT[i - 1],OPT[i - 2]+ Money[i] \}$.
+     \begin{algorithm}
+         \begin{algorithmic}[1] %每行显示行号
+         \Function {RobAlongStreet}{$Money[],n$}
+              \State $OPT[0] = 0$
+              \State $OPT[1] = Money[1]$
+                \For{$i = 2 \to n$}
+                    \State $OPT[i]= max \{ OPT[i - 1],OPT[i - 2] + Money[i] \}$
+                \EndFor
+                \State \Return{$OPT[n]$}
+         \EndFunction
+         \end{algorithmic}
+         \end{algorithm}
+       \subsection{2-1 Prove the correctness}
+       \ For i$^{th}$ house,if we rob it,we can get money[i],and it means we didn't rob i-1$^{th}$ house,so OPT[i] = OPT[i-2] + Money[i].If we don't rob i$^{th}$ house,the money we get is equal to the money we get from 1 to i-1,so OPT[i] = OPT[i-1].
+       \subsection{2-1 time complexity}
+         \ $T(n) = T(n-1) + c = O(n)$
+
+
+       \subsection{2-2 Algorithm Description and pseudo-code}
+         \ When all houses are arranged in a circle,the difference is that the first house and the last house become adjacent so they can't be robbed together.So we can separate the problem into robbing the first house and not robbing the first house.Both subproblem can be solved same as robbing the houses along the streets.
+
+     \begin{algorithm}
+         \begin{algorithmic}[1] %每行显示行号
+         \Function {RobFirstHouse}{$Money[],n$}
+          \State $OPT[0] = 0$
+              \State $OPT[1] = Money[1]$
+                \For{$i = 2 \to n$}
+                    \State $OPT[i]= max \{ OPT[i - 1],OPT[i - 2] + Money[i] \}$
+                \EndFor
+                \State \Return{$OPT[n]$}
+         \EndFunction
+
+         \Function {NotRobFirstHouse}{$Money[],n$}
+          \State $OPT[1] = 0$
+              \State $OPT[2] = Money[2]$
+              
+            \algstore{bkbreak}
+            \end{algorithmic}
+            \end{algorithm}
+
+            \begin{algorithm}[h]
+            \begin{algorithmic}[1]
+            \algrestore{bkbreak}
+           
+                \For{$i = 3 \to n$}
+                    \State $OPT[i]= max \{ OPT[i - 1],OPT[i - 2] + Money[i] \}$
+                \EndFor
+                \State \Return{$OPT[n]$}
+         \EndFunction
+
+         \Function {RobCircleHouse}{$Money[],n$}
+                \State \Return{  \\
+                $max \{RobFirstHouse(Money[],n-1),NotRobFirstHouse(Money[],n)\}$ }
+         \EndFunction
+         \end{algorithmic}
+         \end{algorithm}
+       \subsection{2-2 Prove the correctness}
+       The second  problem can be separated into two situations both similar to the first problem,so we can use the same way to calculate maximum money.When robbing the fist house,OPT[1] = Money[1],and when not robbing the first house,OPT[1] = 0,OPT[2] = Money[2].The optimal structure of both situation is $OPT[i] = max \{ OPT[i - 1],OPT[i - 2]+ Money[i] \}$.Then we compare the result of the two situations,choose the bigger one as the maximum amount of money we can rob.
+       \subsection{2-2 time complexity}
+         \ $T(n) = 2T(n-1) + c = O(n)$
+         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+         \section{Maximum length(7)} %第七题
+         \subsection{Source code}
+         \lstset{
+    numbers=left,
+    numberstyle= \tiny,
+    keywordstyle= \color{ blue!70},
+    commentstyle= \color{red!50!green!50!blue!50},
+    frame=shadowbox, % 阴影效果
+    rulesepcolor= \color{ red!20!green!20!blue!20} ,
+    escapeinside=``, % 英文分号中可写入中文
+    xleftmargin=2em,xrightmargin=2em, aboveskip=1em,
+    framexleftmargin=2em
+}
+\lstset{language=C}
+\begin{lstlisting}
+#include <iostream>
+
+using namespace std;
+
+const int N = 1000;
+//store the given sequence
+double a[N];
+//opt[i] means the LIS length from a0 to ai
+double opt[N];
+//for LIS backtracking
+int path[N];
+
+int max_a;//the length of LIS
+int max_b;//the index of the last element of LIS
+void LongestIncreasingSub(int n)
+{
+    int i, j;
+    for(i = 0; i < n; i++)
+        opt[i] = 1;
+    //opt[i] = max{opt[i],opt[j] + 1}
+    for(i = 1;i < n;i++)
+    {
+     for(j = 0;j < i;j++)
+     {
+        if(a[i] > a[j] && opt[j] + 1 > opt[i])
+        {
+            opt[i] = opt[j] + 1;
+            //the last step tp i is j
+            path[i] = j;
+        }
+     }
+     }
+    for(i = 0;i < n;i++)
+    {
+        if(max_a < opt[i]){
+            max_a = opt[i];
+            max_b = i;
+        }
+    }
+}
+
+int main()
+{
+    int n;
+    cin>>n;//the length of input sequence
+    int i,j;
+    for(i = 0; i < n; i++)
+            cin>>a[i];
+    LongestIncreasingSub(n);
+    cout<<"the maximum length of the longest";
+    cout<<" increasing subsequence is:";
+    cout<<max_a<<endl;
+    cout<<"the longest increasing subsequence:";
+
+    //LIS backtracking
+    for(j = 0,i = max_b;i >= 0;){
+        opt[max_a - 1 - j] = a[i];
+        i = path[i];
+        j++;
+        if(j == max_a) break;
+    }
+    for(i = 0;i < max_a;i++)
+        cout<<opt[i]<<' ';
+
+    cout<<endl;
+    return 0;
+}
+
+\end{lstlisting}
+         \subsection{result}
+         \includegraphics[width=4.00in,height=1.60in]{7.JPG}\\
+\end{document}
